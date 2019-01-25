@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <meta charset="UTF-8">
+    <title>Consentua Custom UI Example</title>
+
+    <!-- this example uses jQuery, but it's not required for Consentua to work -->
+    <script
+        src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E="
+        crossorigin="anonymous"></script>
+    <script src="//websdk-test.consentua.com/websdk/consentua-embed.js" type="text/javascript"></script>
+    <style type="text/css">
+
+    * {
+        box-sizing: border-box;
+    }
+
+    #main {
+        width: 500px;
+        margin: 20px;
+        padding: 0 0 80px 0;
+        border: 1px solid #ccc;
+        background: #0958ba;
+        position: relative;
+    }
+
+    #logotype {
+        display: block;
+        font-family: Montserrat, sans-serif;
+        font-size: 2em;
+        font-weight: bold;
+        color: #fff;
+        padding: 10px;
+    }
+
+    #next {
+        border: 0;
+        border-top: 1px solid #fff;
+        background: #222;
+        padding: 15px;
+        font-size: 1.5em;
+        color: #fff;
+        text-align: center;
+        display: block;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+    }
+
+    #next:disabled {
+        visibility: hidden;
+    }
+
+    #consentua-widget {
+        margin: 10px;
+        width: 480px;
+        border: 0;
+    }
+
+    </style>
+ </head>
+ <body>
+
+     <div id="main">
+         <span id="logotype">ACME Corp.</span>
+         <iframe id="consentua-widget" src=""></iframe>
+         <button id="next">Next</button>
+     </div>
+
+     <p>The input below shows the UID received from Consentua; you need to save this so that you can change or retrieve the consent record in future.</p>
+     <input type="text" disabled="dis" name="consentua-uid" id="consentua-uid" value="--not-set--" />
+
+     <script>
+     var cid = '61'; // Customer ID
+     var sid = '120'; // Consentua service ID
+     var tid = '111'; // Template ID
+
+     /**
+     * We need to identify who's using this interaction by providing a UserID. This could be
+     * a customer number, for instance. If it's set to false, as in this example, then Consentua
+     * will auto-generate a UserID that can be saved later - doing so is useful in situations
+     * where we don't know the identity of a user in advance, like in a newsletter sign up
+     * form.
+     */
+     var uid = false;
+
+     /**
+     * There are two event handlers that can be set up on the wrapper; one that's fired
+     * when the consent interaction is ready (onready), and one that's fired every time
+     * consent preferences are changed (onset)
+     *
+     * The main use for the onready event is to retrieve the auto-generated user id. If a user ID is
+     * being passed explicitly to Consentua, then this isn't necessary.
+     */
+     var cb_ready = function(msg) {
+         $('#consentua-uid').val(msg.message.uid);
+     }
+
+     /**
+     * The onset event includes current consent settings; you can use that information to
+     * dynamically update the page; for instance by disabling form submission until certain
+     * core purposes have been consented to.
+     */
+     var cb_set = function (msg) {
+         console.log("Consent received from Consentua", msg);
+
+         // You could check that all the required consents are set here, by interrogating msg
+
+         if(msg.message.complete) {
+             $('#next').removeAttr('disabled', 'disabled');
+         }
+     };
+
+     var iframe = document.getElementById('consentua-widget');
+
+     /**
+     * For testing out new interactions, pass an "ix" option that contains the URL of the interaction you want to test.
+     * This will be used instead of the interaction that the template is bound to in Consentua. e.g.
+     *
+     * var cwrap = new ConsentuaUIWrapper(iframe, cid, uid, tid, sid, skey, function(){}, "fr", {ix: "http://127.0.0.1:8080/ui-simple/main.html"});
+     */
+
+     var cwrap = new ConsentuaEmbed({
+     iframe: iframe,
+     clientid: cid,
+     uid: uid,
+     templateid: tid,
+     serviceid: sid,
+     opts: {ix: 'http://127.0.0.1:8080/ui/'} // This should point to the custom interaction you're building
+     });
+
+     cwrap.onset = cb_set;
+     cwrap.onready = cb_ready;
+
+     // Disable next button, until consent has been set
+     $('#next').attr('disabled', 'disabled');
+     $('#next').click(function(){ alert("This button doesn't do anything"); });
+     </script>
+
+
+</body>
+</html>
