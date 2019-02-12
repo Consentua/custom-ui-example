@@ -91,6 +91,11 @@
         $('#loading').hide();
         $('#main').show();
 
+        // Additional metadata about this interaction can be stored; for instance the version of the 
+        // privacy policy that's currently in use
+        // This data is stored in the consent record, and is returned by the API's getConsentsEx
+        window.consentua.setMetadata('privacy_policy', 'http://url/to/our/policy/version1.html');
+        
         // Tell the controller that the UI is ready
         window.consentua.ready();
 
